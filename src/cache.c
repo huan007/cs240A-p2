@@ -7,13 +7,33 @@
 //========================================================//
 
 #include "cache.h"
+#include <string.h>
 
 //
 // TODO:Student Information
 //
-const char *studentName = "NAME";
-const char *studentID   = "PID";
-const char *email       = "EMAIL";
+const char *studentName = "Huan Nguyen";
+const char *studentID   = "A12871523";
+const char *email       = "hpn007@ucsd.edu";
+
+//Each memory slot hold a block of memory inside the cache
+//This is the atom of the cache
+typedef struct 
+{
+	uint32_t tag;
+
+	uint32_t valid;
+	uint32_t dirty;
+} MemSlot;
+
+//Each MemBlock hold (n-way) blocks of MemSlot
+typedef struct 
+{
+	MemSlot* slots;	
+} MemBlock;
+
+
+//Each cache will hold (index) amount of MemBlocks
 
 //------------------------------------//
 //        Cache Configuration         //
@@ -58,6 +78,13 @@ uint64_t l2cachePenalties; // L2$ penalties
 //
 //TODO: Add your Cache data structures here
 //
+uint32_t is_1D_init;
+uint32_t is_1I_init;
+uint32_t is_2L_init;
+
+MemBlock* cache_1D;
+MemBlock* cache_1I;
+MemBlock* cache_2L;
 
 //------------------------------------//
 //          Cache Functions           //
@@ -65,57 +92,127 @@ uint64_t l2cachePenalties; // L2$ penalties
 
 // Initialize the Cache Hierarchy
 //
-void
+	void
 init_cache()
 {
-  // Initialize cache stats
-  icacheRefs        = 0;
-  icacheMisses      = 0;
-  icachePenalties   = 0;
-  dcacheRefs        = 0;
-  dcacheMisses      = 0;
-  dcachePenalties   = 0;
-  l2cacheRefs       = 0;
-  l2cacheMisses     = 0;
-  l2cachePenalties  = 0;
-  
-  //
-  //TODO: Initialize Cache Simulator Data Structures
-  //
+	// Initialize cache stats
+	icacheRefs        = 0;
+	icacheMisses      = 0;
+	icachePenalties   = 0;
+	dcacheRefs        = 0;
+	dcacheMisses      = 0;
+	dcachePenalties   = 0;
+	l2cacheRefs       = 0;
+	l2cacheMisses     = 0;
+	l2cachePenalties  = 0;
+
+	//
+	//TODO: Initialize Cache Simulator Data Structures
+	//
+	is_1D_init = FALSE;
+	is_1I_init = FALSE;
+	is_2L_init = FALSE;
+
+	//If icache is specified, then initialize the cache
+	if (icacheSets)
+	{
+		is_1I_init = TRUE;
+		int i, j;
+
+		//Malloc (sets) amount of MemBlock
+		cache_1I = malloc (sizeof(MemBlock) * icacheSets);
+
+		//For each set, initialize (n-way) slots
+		for (i = 0; i < icacheSets; i++)
+		{
+			MemBlock* curBlock = &(cache_1I[i]);
+			curBlock->slots = malloc (sizeof(MemSlot) * icacheAssoc);
+			for(j = 0; j < icacheAssoc; j++)
+			{
+				MemSlot* curSlot = &(curBlock->slots[j]);
+				memset(curSlot, 0, sizeof(MemSlot));
+			}
+		}
+	}
+	
+	//If dcache is specified, then initialize the cache
+	if (dcacheSets)
+	{
+		is_1D_init = TRUE;
+		int i, j;
+
+		//Malloc (sets) amount of MemBlock
+		cache_1D = malloc (sizeof(MemBlock) * dcacheSets);
+
+		//For each set, initialize (n-way) slots
+		for (i = 0; i < dcacheSets; i++)
+		{
+			MemBlock* curBlock = &(cache_1D[i]);
+			curBlock->slots = malloc (sizeof(MemSlot) * dcacheAssoc);
+			for(j = 0; j < dcacheAssoc; j++)
+			{
+				MemSlot* curSlot = &(curBlock->slots[j]);
+				memset(curSlot, 0, sizeof(MemSlot));
+			}
+		}
+	}
+	
+	//If l2cache is specified, then initialize the cache
+	if (l2cacheSets)
+	{
+		is_2L_init = TRUE;
+		int i, j;
+
+		//Malloc (sets) amount of MemBlock
+		cache_2L = malloc (sizeof(MemBlock) * l2cacheSets);
+
+		//For each set, initialize (n-way) slots
+		for (i = 0; i < l2cacheSets; i++)
+		{
+			MemBlock* curBlock = &(cache_2L[i]);
+			curBlock->slots = malloc (sizeof(MemSlot) * l2cacheAssoc);
+			for(j = 0; j < l2cacheAssoc; j++)
+			{
+				MemSlot* curSlot = &(curBlock->slots[j]);
+				memset(curSlot, 0, sizeof(MemSlot));
+			}
+		}
+	}
+	//End function
 }
 
 // Perform a memory access through the icache interface for the address 'addr'
 // Return the access time for the memory operation
 //
-uint32_t
+	uint32_t
 icache_access(uint32_t addr)
 {
-  //
-  //TODO: Implement I$
-  //
-  return memspeed;
+	//
+	//TODO: Implement I$
+	//
+	return memspeed;
 }
 
 // Perform a memory access through the dcache interface for the address 'addr'
 // Return the access time for the memory operation
 //
-uint32_t
+	uint32_t
 dcache_access(uint32_t addr)
 {
-  //
-  //TODO: Implement D$
-  //
-  return memspeed;
+	//
+	//TODO: Implement D$
+	//
+	return memspeed;
 }
 
 // Perform a memory access to the l2cache for the address 'addr'
 // Return the access time for the memory operation
 //
-uint32_t
+	uint32_t
 l2cache_access(uint32_t addr)
 {
-  //
-  //TODO: Implement L2$
-  //
-  return memspeed;
+	//
+	//TODO: Implement L2$
+	//
+	return memspeed;
 }
